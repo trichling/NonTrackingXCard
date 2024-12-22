@@ -4,7 +4,7 @@ var qrScanner;
 window.qrGenerator = {
     
     initializeQrCode: function (container) {
-        qrCode = new QRCode(document.getElementById(container), { width: 350, height: 350 });      
+        qrCode = new QRCode(document.getElementById(container), { width: 340, height: 340 });      
     },
 
     generateQrCode: function (data) {
@@ -26,7 +26,8 @@ window.qrScanHelper = {
             },
             { 
                 highlightScanRegion: true,
-                highlightCodeOutline: true
+                highlightCodeOutline: true,
+              
             },
         );
         qrScanner.start();
