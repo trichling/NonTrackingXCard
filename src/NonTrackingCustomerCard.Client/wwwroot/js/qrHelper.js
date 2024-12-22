@@ -4,7 +4,7 @@ var qrScanner;
 window.qrGenerator = {
     
     initializeQrCode: function (container) {
-        qrCode = new QRCode(document.getElementById(container), { width: 600, height: 600 });      
+        qrCode = new QRCode(document.getElementById(container), { width: 350, height: 350 });      
     },
 
     generateQrCode: function (data) {
@@ -16,7 +16,7 @@ window.qrGenerator = {
 }
 
 window.qrScanHelper = {
-    
+
     startScan: function (dotNetObject) {
         qrScanner = new QrScanner(
             document.getElementById("qrScanner"),
