@@ -1,0 +1,164 @@
+@page "/vendor/scancustomer"
+
+@using System.Security.Cryptography
+@using NonTrackingCustomerCard.Client.Contracts
+
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Scan Customer Card</h3>
+
+@if (scannedCustomerData != null)
+{
+    <div>
+        <label for="points">Points:</label>
+        <input type="number" id="points" @bind="scannedCustomerData.Customer.Points" />
+    </div>
+    @if (validityState == ValidityState.NoSignature)
+    {
+        <div class="alert alert-warning">
+            <span class="icon-warning">Keine Signatur gefunden. Ist dies ein neuer Kunde?</span> 
+        </div>
+    }
+    else if (validityState == ValidityState.ValidSignature)
+    {
+        <div class="alert alert-success">
+            <span class="icon-checkmark">Die Angaben des Kunden sind gültig.</span>
+        </div>
+    }
+    else if (validityState == ValidityState.InvalidSignature)
+    {
+        <div class="alert alert-danger">
+            <span class="icon-error">Die Angaben des Kunden können nicht überprüft werden.</span> 
+        </div>
+    }
+
+    <button @onclick="SaveCustomerData">Save</button>
+}
+else
+{
+    <video id="qrScanner"></video>
+}
+
+<p>
+    <div id="qrcode"@onclick="NavigateToVendor"></div>
+</p>
+
+<style>
+    .alert {
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .icon-warning::before {
+        content: "⚠️";
+        margin-right: 10px;
+    }
+    .icon-checkmark::before {
+        content: "✅";
+        margin-right: 10px;
+    }
+    .icon-error::before {
+        content: "❌";
+        margin-right: 10px;
+    }
+</style>
+
+@code {
+
+    private CustomerDataWithSignature scannedCustomerData;
+    private ValidityState validityState;
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("qrScanHelper.startScan", DotNetObjectReference.Create(this));
+            await JS.InvokeVoidAsync("qrGenerator.initializeQrCode", "qrcode");
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnQrCodeScanned(string qrCodeData)
+    {
+        await JS.InvokeVoidAsync("qrScanHelper.stopScan");
+
+        Console.WriteLine($"Original QR Code Data: {qrCodeData}");
+
+        // Ensure the string is properly formatted
+        var json = qrCodeData.Trim().Trim('\'').Replace("'", "\"");
+        Console.WriteLine($"Formatted JSON: {json}");
+
+        try
+        {
+            var deserializedData = System.Text.Json.JsonSerializer.Deserialize<CustomerDataWithSignature>(json, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (deserializedData != null)
+            {
+                // Verify the signature
+                if (string.IsNullOrWhiteSpace(deserializedData.Signature))
+                {
+                    validityState = ValidityState.NoSignature;
+                }
+                else
+                {
+                    var vendorJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");
+                    var vendor = System.Text.Json.JsonSerializer.Deserialize<VendorData>(vendorJson);
+                    var publicKey = vendor.PublicKey;
+                    var data = System.Text.Json.JsonSerializer.Serialize(deserializedData.Customer);
+                    var isValid = await JS.InvokeAsync<bool>("cryptoHelper.verifySignature", publicKey, data, deserializedData.Signature);
+                    validityState = isValid ? ValidityState.ValidSignature : ValidityState.InvalidSignature;
+                }
+
+                scannedCustomerData = deserializedData;
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine("Deserialized data is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Deserialization failed: {ex.Message}");
+        }
+    }
+
+    private async Task SaveCustomerData(MouseEventArgs e)
+    {
+        // Retrieve private key from local storage
+        var vendorJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");
+        var vendor = System.Text.Json.JsonSerializer.Deserialize<VendorData>(vendorJson);
+
+        // Sign the hash of the customer data
+        var customerJson = System.Text.Json.JsonSerializer.Serialize(scannedCustomerData.Customer);
+        var signature = await JS.InvokeAsync<string>("cryptoHelper.signData", vendor.PrivateKey, customerJson);
+
+        // Update the signature in the scanned customer data
+        scannedCustomerData.Signature = signature;
+
+        await JS.InvokeAsync<string>("qrGenerator.generateQrCode", scannedCustomerData);
+    }
+
+    private void NavigateToVendor(MouseEventArgs e)
+    {
+        Navigation.NavigateTo("/vendor");
+    }
+}

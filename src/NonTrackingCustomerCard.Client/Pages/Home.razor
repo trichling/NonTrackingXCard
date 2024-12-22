@@ -1,0 +1,60 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Home</PageTitle>
+
+<h1>Non Tracking Customer Card</h1>
+
+<div class="button-container" id="buttonContainer">
+    <NavLink href="/vendor">
+        <button class="huge-button" @onclick='() => SaveRolePreferenceAndNavigate("vendor")'>Vendor</button>
+    </NavLink>
+    <NavLink href="/customer">
+        <button class="huge-button" @onclick='() => SaveRolePreferenceAndNavigate("customer")'>Customer</button>
+    </NavLink>
+</div>
+
+<style>
+    .button-container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+    .huge-button {
+        padding: 20px 40px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var rolePreference = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.RolePreference");
+        if (!string.IsNullOrEmpty(rolePreference))
+        {
+            Navigation.NavigateTo($"/{rolePreference}");
+            return;
+        }
+
+        var customer = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Customer");
+        var vendor = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");
+
+        if (!string.IsNullOrEmpty(customer) && string.IsNullOrEmpty(vendor))
+        {
+            Navigation.NavigateTo("/customer");
+        }
+        else if (string.IsNullOrEmpty(customer) && !string.IsNullOrEmpty(vendor))
+        {
+            Navigation.NavigateTo("/vendor");
+        }
+       
+    }
+
+    private async Task SaveRolePreferenceAndNavigate(string role)
+    {
+        await JS.InvokeVoidAsync("localStorage.setItem", "NonTrackingCustomerCard.Client.RolePreference", role);
+        Navigation.NavigateTo($"/{role}");
+    }
+}

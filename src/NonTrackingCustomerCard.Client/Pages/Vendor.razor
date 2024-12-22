@@ -1,0 +1,49 @@
+@page "/vendor"
+@using System.Security.Cryptography
+@using NonTrackingCustomerCard.Client.Contracts
+
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Vendor</h3>
+
+<h4>Welcome, @vendorOfCustomer.Name !</h4>
+
+<p>
+    <div id="qrcode" @onclick="ScanCustomer"></div>
+</p>
+
+
+@code {
+    private VendorOfCustomerData vendorOfCustomer = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var vendorJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");
+        if (!string.IsNullOrEmpty(vendorJson))
+        {
+            vendorOfCustomer = System.Text.Json.JsonSerializer.Deserialize<VendorOfCustomerData>(vendorJson);
+        }
+        else
+        {
+            Navigation.NavigateTo("/vendor/create");
+        }
+    }
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("qrGenerator.initializeQrCode", "qrcode");
+        }
+
+        if (vendorOfCustomer != null)
+            await JS.InvokeAsync<string>("qrGenerator.generateQrCode", vendorOfCustomer);
+    }
+
+    private async Task ScanCustomer()
+    {
+         Navigation.NavigateTo($"/vendor/scancustomer");
+    }
+
+}

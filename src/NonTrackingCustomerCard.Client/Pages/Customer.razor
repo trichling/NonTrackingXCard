@@ -1,0 +1,45 @@
+@page "/customer"
+@using NonTrackingCustomerCard.Client.Contracts
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<h3>Customer</h3>
+
+<h4>Welcome at @customerOfVendor.OfVendor.Name!</h4>
+
+<div id="qrcode" @onclick="NavigateToScanUpdate"></div>
+
+@code {
+    private CustomerDataWithSignature customer = new();
+    private CustomerOfVendorData customerOfVendor = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customerJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Customer");
+        if (!string.IsNullOrEmpty(customerJson))
+        {
+            customerOfVendor = System.Text.Json.JsonSerializer.Deserialize<CustomerOfVendorData>(customerJson) ?? new CustomerOfVendorData();
+            customer = System.Text.Json.JsonSerializer.Deserialize<CustomerDataWithSignature>(customerJson) ?? new CustomerDataWithSignature();
+        }
+        else
+        {
+            Navigation.NavigateTo("/customer/scanvendor");
+        }
+    }
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("qrGenerator.initializeQrCode", "qrcode");
+        }
+
+        if (customer != null)
+            await JS.InvokeAsync<string>("qrGenerator.generateQrCode", customer);
+    }
+
+    private void NavigateToScanUpdate()
+    {
+        Navigation.NavigateTo("/customer/scanupdate");
+    }
+}

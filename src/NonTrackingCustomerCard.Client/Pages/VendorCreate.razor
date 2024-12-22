@@ -1,0 +1,37 @@
+@page "/vendor/create"
+@using System.Security.Cryptography
+@using NonTrackingCustomerCard.Client.Contracts
+
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Create vendor</h3>
+
+
+<input @bind="inputName" placeholder="Enter your name" />
+<button @onclick="SaveVendor">Save</button>
+
+
+@code {
+
+    private string inputName;
+
+    private async Task SaveVendor()
+    {
+        var keyPair = await JS.InvokeAsync<KeyPair>("cryptoHelper.generateKeyPair");
+
+        var vendor = new VendorData
+        {
+            Id = Guid.NewGuid(),
+            Name = inputName,
+            PrivateKey = keyPair.PrivateKey,
+            PublicKey = keyPair.PublicKey
+        };
+
+        var vendorJson = System.Text.Json.JsonSerializer.Serialize(vendor);
+        await JS.InvokeVoidAsync("localStorage.setItem", "NonTrackingCustomerCard.Client.Vendor", vendorJson);
+      
+        Navigation.NavigateTo("/vendor");
+    }
+
+}

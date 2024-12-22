@@ -1,0 +1,63 @@
+@page "/customer/scanvendor"
+
+@using NonTrackingCustomerCard.Client.Contracts
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<h3>Scan Vendor</h3>
+
+<video id="qrScanner"></video>
+
+@code {
+
+    private CustomerDataWithSignature customer;
+    private CustomerOfVendorData customerOfVendor;
+
+    override protected async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("qrScanHelper.startScan", DotNetObjectReference.Create(this));
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnQrCodeScanned(string qrCodeData)
+    {
+        await JS.InvokeVoidAsync("qrScanHelper.stopScan", DotNetObjectReference.Create(this));
+
+        Console.WriteLine($"Original QR Code Data: {qrCodeData}");
+
+        // Ensure the string is properly formatted
+        var json = qrCodeData.Trim().Trim('\'').Replace("'", "\"");
+        Console.WriteLine($"Formatted JSON: {json}");
+
+        try
+        {
+            var vendorOfCustomerData = System.Text.Json.JsonSerializer.Deserialize<VendorOfCustomerData>(json, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            var customer = new CustomerOfVendorData
+            {
+                Customer = new CustomerData
+                {
+                    Id = Guid.NewGuid(),
+                    Points = 0
+                },
+                OfVendor = vendorOfCustomerData
+            };
+
+            // Save customer data to local storage
+            var customerJson = System.Text.Json.JsonSerializer.Serialize(customer);
+            await JS.InvokeVoidAsync("localStorage.setItem", "NonTrackingCustomerCard.Client.Customer", customerJson);
+
+            Navigation.NavigateTo("/customer");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Deserialization failed: {ex.Message}");
+        }
+    }
+}
