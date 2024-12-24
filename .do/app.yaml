@@ -1,12 +1,11 @@
 name: nontracking-customer-card
-services:
-  - name: web
-    image:
-      build:
-        dockerfile: Dockerfile
-    http_port: 80
-    routes:
-      - path: /
-    environment:
-      - name: ASPNETCORE_ENVIRONMENT
-        value: Production
+static_sites:
+- name: site
+  github:
+    repo: trichling/NonTrackingCustomerCard
+    branch: main
+    deploy_on_push: true
+  dockerfile_path: src/NontrackingCustomerCard.Client/Dockerfile 
+  output_dir: /output/wwwroot
+  index_document: index.html
+  catchall_document: index.html
