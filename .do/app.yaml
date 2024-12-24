@@ -1,0 +1,12 @@
+name: nontracking-customer-card
+services:
+  - name: web
+    image:
+      build:
+        dockerfile: Dockerfile
+    http_port: 80
+    routes:
+      - path: /
+    environment:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: Production
