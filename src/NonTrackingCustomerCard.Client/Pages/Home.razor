@@ -2,16 +2,18 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Meine Kundenkarte</PageTitle>
 
-<h1>Non Tracking Customer Card</h1>
+<h1>Meine Kundenkarte</h1>
+
+<h2>Ich buttonContainer ein...</h2>
 
 <div class="button-container" id="buttonContainer">
     <NavLink href="/vendor">
-        <button class="huge-button" @onclick='() => SaveRolePreferenceAndNavigate("vendor")'>Vendor</button>
+        <button class="huge-button" @onclick='() => SaveRolePreferenceAndNavigate("vendor")'>Händler</button>
     </NavLink>
     <NavLink href="/customer">
-        <button class="huge-button" @onclick='() => SaveRolePreferenceAndNavigate("customer")'>Customer</button>
+        <button class="huge-button" @onclick='() => SaveRolePreferenceAndNavigate("customer")'>Kunde</button>
     </NavLink>
 </div>
 
