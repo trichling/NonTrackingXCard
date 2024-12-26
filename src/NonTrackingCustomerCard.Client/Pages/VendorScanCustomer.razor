@@ -17,7 +17,7 @@
     @if (validityState == ValidityState.NoSignature)
     {
         <div class="alert alert-warning">
-            <span class="icon-warning">Keine Signatur gefunden. Ist dies ein neuer Kunde?</span> 
+            <span class="icon-warning">Die Angaben können nicht geprüft werden. Ist dies ein neuer Kunde?</span> 
         </div>
     }
     else if (validityState == ValidityState.ValidSignature)
@@ -33,7 +33,7 @@
         </div>
     }
 
-    <button @onclick="SaveCustomerData">Speicher</button>
+    <button @onclick="SaveCustomerData">Speichern</button>
 }
 else
 {
@@ -41,7 +41,7 @@ else
 }
 
 <p>
-    <div id="qrcode"@onclick="NavigateToVendor"></div>
+    <div id="qrcode" class="@GetQrCodeVisibility()" @onclick="ScanNextCustomer"></div>
 </p>
 
 <style>
@@ -76,6 +76,9 @@ else
         content: "❌";
         margin-right: 10px;
     }
+    .hidden {
+        display: none;
+    }
 </style>
 
 @code {
@@ -85,7 +88,7 @@ else
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender || scannedCustomerData == null)
         {
             await JS.InvokeVoidAsync("qrScanHelper.startScan", DotNetObjectReference.Create(this));
             await JS.InvokeVoidAsync("qrGenerator.initializeQrCode", "qrcode");
@@ -157,8 +160,15 @@ else
         await JS.InvokeAsync<string>("qrGenerator.generateQrCode", scannedCustomerData);
     }
 
-    private void NavigateToVendor(MouseEventArgs e)
+    private async Task ScanNextCustomer(MouseEventArgs e)
     {
         Navigation.NavigateTo("/vendor");
+        //scannedCustomerData = null;
+        //StateHasChanged();
+    }
+
+    private string GetQrCodeVisibility()
+    {
+        return scannedCustomerData != null ? string.Empty : "hidden";
     }
 }

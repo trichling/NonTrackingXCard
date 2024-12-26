@@ -4,7 +4,12 @@ var qrScanner;
 window.qrGenerator = {
     
     initializeQrCode: function (container) {
-        qrCode = new QRCode(document.getElementById(container), { width: 340, height: 340 });      
+        qrCode = new QRCode(document.getElementById(container), { width: 340, height: 340 }); 
+        qrCode.clear();     
+    },
+
+    clearQrCode: function () {
+        qrCode.clear();
     },
 
     generateQrCode: function (data) {

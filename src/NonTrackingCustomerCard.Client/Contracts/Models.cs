@@ -1,15 +1,19 @@
+using System.Text.Json.Serialization;
+
 namespace NonTrackingCustomerCard.Client.Contracts;
 
 public class VendorOfCustomerData
 {
-    public Guid Id { get; set; }
+    [JsonPropertyName("vn")]
     public string Name { get; set; }
+    [JsonPropertyName("puk")]
     public string PublicKey { get; set; }
 }
 
 public class VendorData : VendorOfCustomerData
 {
 
+    [JsonPropertyName("prk")]
     public string PrivateKey { get; set; }
 
 }
@@ -22,7 +26,7 @@ public class KeyPair
 
 public class CustomerData
 {
-    public Guid Id { get; set; }
+    [JsonPropertyName("pts")]
     public int Points { get; set; }
 }
 
@@ -34,8 +38,10 @@ public class CustomerDataWithSignature
         Signature = string.Empty;
     }
 
+    [JsonPropertyName("c")]
     public CustomerData Customer { get; set; }
 
+    [JsonPropertyName("s")]
     public string Signature { get; set; }
 }
 
@@ -47,18 +53,9 @@ public class CustomerOfVendorData : CustomerDataWithSignature
         OfVendor = new();
     }
 
+    [JsonPropertyName("ov")]
     public VendorOfCustomerData OfVendor { get; set; }
 
-}
-
-
-
-public class CreateCustomerData
-{
-    public CustomerData Customer { get; set; }
-    public VendorOfCustomerData OfVendor { get; set; }
-    public string LastValidCustomerData { get; set; }
-    public string LastValidCutomerDataSignature { get; set; }
 }
 
 public enum ValidityState
