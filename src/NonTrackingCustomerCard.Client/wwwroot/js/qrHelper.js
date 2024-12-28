@@ -3,20 +3,67 @@ var qrScanner;
 
 window.qrGenerator = {
     
+    qrcodeJs: {
+        initializeQrCode: function (container) {
+            // qrCode = new QRCode(document.getElementById(container), { width: 340, height: 340 }); 
+            // qrCode.clear();     
+
+            var containerElement = document.getElementById(container);
+            qrCode = new QRCode(containerElement, { width: containerElement.offsetWidth, height: containerElement.offsetHeight });
+            qrCode.clear();
+
+            // Initialize ResizeObserver to watch for changes in the container size
+            resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    const width = entry.contentRect.width;
+                    const height = entry.contentRect.height;
+                    qrCode._htOption.width = width;
+                    qrCode._htOption.height = height;
+                    qrCode.clear();
+                    qrCode.makeCode(qrCode._oQRCode);
+                    //qrCode.resize(width, height);
+                }
+            });
+
+            resizeObserver.observe(containerElement);
+        },
+
+        clearQrCode: function () {
+            qrCode.clear();
+        },
+
+        generateQrCode: function (data) {
+            // stringify json the data
+        const jsonData = JSON.stringify(data);
+        qrCode.clear();
+        qrCode.makeCode(jsonData);
+        },
+    },
+
     initializeQrCode: function (container) {
-        qrCode = new QRCode(document.getElementById(container), { width: 340, height: 340 }); 
-        qrCode.clear();     
+        var containerElement = document.getElementById(container);
+        qrCode = new QRious({element: containerElement, size: 300});
+
+        resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const width = entry.contentRect.width;
+                const height = entry.contentRect.height;
+                var squareSize = Math.min(width, height);
+                qrCode.size = squareSize;
+            }
+        });
+
+        resizeObserver.observe(containerElement);
     },
 
     clearQrCode: function () {
-        qrCode.clear();
+        qrCode.set({value: ''});
     },
 
     generateQrCode: function (data) {
         // stringify json the data
        const jsonData = JSON.stringify(data);
-       qrCode.clear();
-       qrCode.makeCode(jsonData);
+       qrCode.set({value: jsonData});
     }
 }
 
