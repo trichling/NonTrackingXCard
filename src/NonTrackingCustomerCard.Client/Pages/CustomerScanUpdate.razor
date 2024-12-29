@@ -8,15 +8,10 @@
 
 <h3>Neuen Punktestand scannen</h3>
 
-
-
 @if (scannedCustomerData != null)
 {
     <h4>Neuer Punktestand:</h4>
-    <div>
-        <label for="points">Punkte:</label>
-        <span type="number" id="points">@scannedCustomerData.Customer.Points</span>
-    </div>
+
     if (validityState == ValidityState.ValidSignature)
     {
         <div class="alert alert-success">
@@ -29,7 +24,12 @@
             <span class="icon-error">Die Angaben des Händlers können nicht überprüft werden.</span> 
         </div>
     }
-    <button @onclick="SaveCustomerData">Speicher</button>
+
+    <div>
+        <label for="points">Punkte:</label>
+        <span type="number" id="points">@scannedCustomerData.Customer.Points</span>
+        <button @onclick="SaveCustomerData">Speicher</button>
+    </div>
 }
 else
 {

@@ -10,10 +10,6 @@
 
 @if (scannedCustomerData != null)
 {
-    <div>
-        <label for="points">Points:</label>
-        <InputNumber autofocus @ref="inputPoints" @bind-Value="scannedCustomerData.Customer.Points" />
-    </div>
     @if (validityState == ValidityState.NoSignature)
     {
         <div class="alert alert-warning">
@@ -32,15 +28,19 @@
             <span class="icon-error">Die Angaben des Kunden können nicht überprüft werden.</span> 
         </div>
     }
+    <div>
+        <label for="points">Neue Punktestand:</label>
+        <InputNumber autofocus @ref="inputPoints" @bind-Value="scannedCustomerData.Customer.Points" @onkeyup="HandleEnter" Immediate="true" />
+        <button @onclick="SaveCustomerData">Speichern</button>
+    </div>
 
-    <button @onclick="SaveCustomerData">Speichern</button>
 }
 else
 {
     <video id="qrScanner"></video>
 }
 
-<canvas id="qrcode" class="qr-code-container" @onclick="ScanNextCustomer"></canvas>
+<canvas id="qrcode" class="qr-code-container @GetQrCodeVisibility()" @onclick="ScanNextCustomer"></canvas>
 
 <style>
     html, body, article  {
@@ -96,6 +96,7 @@ else
     private CustomerDataWithSignature scannedCustomerData;
     private ValidityState validityState;
     private InputNumber<int> inputPoints;
+    private bool showQrCode;
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -160,6 +161,14 @@ else
         }
     }
 
+    private async Task HandleEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+        {
+            await SaveCustomerData(null);
+        }
+    }
+
     private async Task SaveCustomerData(MouseEventArgs e)
     {
         // Retrieve private key from local storage
@@ -174,17 +183,21 @@ else
         scannedCustomerData.Signature = signature;
 
         await JS.InvokeAsync<string>("qrGenerator.generateQrCode", scannedCustomerData);
+
+        showQrCode = true;
+        StateHasChanged();
     }
 
     private async Task ScanNextCustomer(MouseEventArgs e)
     {
-        Navigation.NavigateTo("/vendor");
-        //scannedCustomerData = null;
-        //StateHasChanged();
+        //Navigation.NavigateTo("/vendor");
+        scannedCustomerData = null;
+        showQrCode = false;
+        StateHasChanged();
     }
 
     private string GetQrCodeVisibility()
     {
-        return scannedCustomerData != null ? string.Empty : "hidden";
+        return showQrCode ? string.Empty : "hidden";
     }
 }
