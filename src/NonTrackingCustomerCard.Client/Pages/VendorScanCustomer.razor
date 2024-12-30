@@ -28,19 +28,23 @@
             <span class="icon-error">Die Angaben des Kunden können nicht überprüft werden.</span> 
         </div>
     }
+
     <div>
         <label for="points">Neue Punktestand:</label>
         <InputNumber autofocus @ref="inputPoints" @bind-Value="scannedCustomerData.Customer.Points" @onkeyup="HandleEnter" Immediate="true" />
         <button @onclick="SaveCustomerData">Speichern</button>
     </div>
 
+    @if (showQrCode)
+    {
+        <canvas id="qrcode" class="qr-code-container" @onclick="ScanNextCustomer"></canvas>
+    }
+
 }
 else
 {
     <video id="qrScanner"></video>
 }
-
-<canvas id="qrcode" class="qr-code-container @GetQrCodeVisibility()" @onclick="ScanNextCustomer"></canvas>
 
 <style>
     html, body, article  {
@@ -52,9 +56,7 @@ else
         height: 100%;
         object-fit: contain;
     }
-</style>
 
-<style>
     .alert {
         padding: 15px;
         margin-top: 10px;
@@ -100,15 +102,20 @@ else
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender || scannedCustomerData == null)
+        if (scannedCustomerData == null)
         {
             await JS.InvokeVoidAsync("qrScanHelper.startScan", DotNetObjectReference.Create(this));
-            await JS.InvokeVoidAsync("qrGenerator.initializeQrCode", "qrcode");
         }
 
-        if (scannedCustomerData != null)
+        if (scannedCustomerData != null )
         {
-           // await JS.InvokeVoidAsync("window.HTMLButtonElement.prototype.select.call", inputPoints.Element);
+           await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", inputPoints.Element);
+
+           if (showQrCode)
+           {
+                await JS.InvokeVoidAsync("qrGenerator.initializeQrCode", "qrcode");
+                await JS.InvokeAsync<string>("qrGenerator.generateQrCode", scannedCustomerData);
+           }
         }
     }
 
@@ -181,9 +188,6 @@ else
 
         // Update the signature in the scanned customer data
         scannedCustomerData.Signature = signature;
-
-        await JS.InvokeAsync<string>("qrGenerator.generateQrCode", scannedCustomerData);
-
         showQrCode = true;
         StateHasChanged();
     }
@@ -194,10 +198,5 @@ else
         scannedCustomerData = null;
         showQrCode = false;
         StateHasChanged();
-    }
-
-    private string GetQrCodeVisibility()
-    {
-        return showQrCode ? string.Empty : "hidden";
     }
 }
