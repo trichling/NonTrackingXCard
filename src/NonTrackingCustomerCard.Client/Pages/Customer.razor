@@ -3,9 +3,9 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<h3>Kunde</h3>
+<h3>Ihre Kundenkarte von @customerOfVendor.OfVendor.Name!</h3>
 
-<h4>Willkommen bei @customerOfVendor.OfVendor.Name!</h4>
+<h4>Aktueller Punktestand: @customer.Customer.Points</h4>
 
 <canvas id="qrcode" class="qr-code-container" @onclick="NavigateToScanUpdate"></canvas>
 
