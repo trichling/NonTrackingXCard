@@ -31,7 +31,7 @@
 
     <div>
         <label for="points">Neue Punktestand:</label>
-        <InputNumber autofocus @ref="inputPoints" @bind-Value="scannedCustomerData.Customer.Points" @onkeyup="HandleEnter" Immediate="true" />
+        <InputNumber autofocus @ref="inputPoints" @bind-Value="scannedCustomerData.Customer.Points" @onkeyup="HandleEnter" />
         <button @onclick="SaveCustomerData">Speichern</button>
     </div>
 
@@ -99,6 +99,7 @@ else
     private ValidityState validityState;
     private InputNumber<int> inputPoints;
     private bool showQrCode;
+    private bool selectAll;
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -109,7 +110,11 @@ else
 
         if (scannedCustomerData != null )
         {
-           await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", inputPoints.Element);
+            if (selectAll)
+            {
+                await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", inputPoints.Element);
+                selectAll = false;
+            }
 
            if (showQrCode)
            {
@@ -155,6 +160,7 @@ else
                 }
 
                 scannedCustomerData = deserializedData;
+                selectAll = true;
                 StateHasChanged();
             }
             else
