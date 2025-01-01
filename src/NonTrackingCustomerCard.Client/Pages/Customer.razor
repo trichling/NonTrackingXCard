@@ -1,13 +1,25 @@
 @page "/customer"
+
 @using NonTrackingCustomerCard.Client.Contracts
+@using NonTrackingCustomerCard.Client.Repositories
+
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject ICustomersRepository CustomerRepository
 
 <h3>Ihre Kundenkarte von @customerOfVendor.OfVendor.Name!</h3>
 
 <h4>Aktueller Punktestand: @customer.Customer.Points</h4>
 
 <canvas id="qrcode" class="qr-code-container" @onclick="NavigateToScanUpdate"></canvas>
+
+<p>
+    Auf den QR-Code klicken, um den Punktestand zu aktualisieren.
+</p>
+
+<p>
+    <NavLink href="/customer/backup/create">Meine Daten sichern</NavLink>
+</p>
 
 <style>
     html, body, article  {
@@ -28,11 +40,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var customerJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Customer");
-        if (!string.IsNullOrEmpty(customerJson))
+        var (hasCustomer, _) = await CustomerRepository.TryGetCustomerJson();
+
+        if (hasCustomer)
         {
-            customerOfVendor = System.Text.Json.JsonSerializer.Deserialize<CustomerOfVendorData>(customerJson) ?? new CustomerOfVendorData();
-            customer = System.Text.Json.JsonSerializer.Deserialize<CustomerDataWithSignature>(customerJson) ?? new CustomerDataWithSignature();
+            customerOfVendor = await CustomerRepository.GetCustomerOfVendorDataAsync();
+            customer = await CustomerRepository.GetCustomerDataWithSignatureAsync();
         }
         else
         {

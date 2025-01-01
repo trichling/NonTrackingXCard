@@ -1,0 +1,58 @@
+@page "/customer/backup/restore"
+
+@using NonTrackingCustomerCard.Client.Contracts
+@using NonTrackingCustomerCard.Client.Repositories
+
+@inject ICustomersRepository CustomerRepository
+@inject NavigationManager Navigation
+
+<h3>Meine Daten widerherstellen</h3>
+
+<p>
+    Hier können Sie Ihre Kundendaten wiederherstellen. Fügen Sie den Text in das folgende Feld ein und klicken Sie auf "Wiederherstellen".
+</p>
+
+<div class="textarea-container">
+    <textarea @bind="customerDataJson"></textarea>
+</div>
+
+<button @onclick="RestoreCustomerData">Wiederherstellen</button>
+
+<style>
+    html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    }
+    .textarea-container {
+    height: calc(100vh - 350px); /* Adjust the height to account for the header */
+    display: flex;
+    flex-direction: column;
+    }
+    textarea {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    font-size: 16px;
+    }
+</style>
+
+@code {
+    private string customerDataJson;
+
+    protected override async Task OnInitializedAsync()
+    {
+       
+    }
+
+    private async Task RestoreCustomerData(MouseEventArgs e)
+    {
+        var customerData = System.Text.Json.JsonSerializer.Deserialize<CustomerOfVendorData>(customerDataJson);
+
+        await CustomerRepository.SaveCustomerDataWithSignatureAsync(customerData);
+
+        Navigation.NavigateTo("/customer");
+    }
+}
