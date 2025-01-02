@@ -1,14 +1,24 @@
 @page "/vendor"
 @using System.Security.Cryptography
 @using NonTrackingCustomerCard.Client.Contracts
+@using NonTrackingCustomerCard.Client.Repositories
 
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject IVendorRepository VendorRepository
 
 <h3>@vendorOfCustomer.Name</h3>
 
 
 <canvas id="qrcode" class="qr-code-container" @onclick="ScanCustomer"></canvas>
+
+<p>
+    Auf den QR-Code klicken, um eine Kundenkarte zu scannen.
+</p>
+
+<p>
+    <NavLink href="/vendor/backup/create">Meine Daten sichern</NavLink>
+</p>
 
 <style>
     html, body, article  {
@@ -27,10 +37,10 @@
     
     protected override async Task OnInitializedAsync()
     {
-        var vendorJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");
-        if (!string.IsNullOrEmpty(vendorJson))
+        var (hasVendor, _) = await VendorRepository.TryGetVendorJson();
+        if (hasVendor)
         {
-            vendorOfCustomer = System.Text.Json.JsonSerializer.Deserialize<VendorOfCustomerData>(vendorJson);
+            vendorOfCustomer = await VendorRepository.GetVendorPublicData();
         }
         else
         {
@@ -54,4 +64,4 @@
          Navigation.NavigateTo($"/vendor/scancustomer");
     }
 
-}
+}    

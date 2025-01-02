@@ -1,20 +1,20 @@
-@page "/customer/backup/create"
+@page "/vendor/backup/create"
 
 @using NonTrackingCustomerCard.Client.Contracts
 @using NonTrackingCustomerCard.Client.Repositories
 
-@inject ICustomersRepository CustomerRepository
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject IVendorRepository VendorRepository
 
 <h3>Meine Daten sichern</h3>
 
 <p>
-    Hier können Sie Ihre Kundendaten sichern. Kopieren Sie den folgenden Text und speichern Sie ihn an einem sicheren Ort.
+    Hier können Sie Ihre Händlerdaten sichern. Kopieren Sie den folgenden Text und speichern Sie ihn an einem sicheren Ort.
 </p>
 
 <div class="textarea-container">
-    <InputTextArea  @ref="backupJson" @bind-Value="customerDataJson" />
+    <InputTextArea  @ref="backupJson" @bind-Value="vendorDataJson" />
 </div>
 
 <style>
@@ -39,20 +39,20 @@
 </style>
 
 @code {
-    private string customerDataJson;
+    private string vendorDataJson;
     private InputTextArea backupJson;
 
     protected override async Task OnInitializedAsync()
     {
-        var (hasCustomer, customerData) = await CustomerRepository.TryGetCustomerJson();
+        var (hasVendor, vendorData) = await VendorRepository.TryGetVendorJson();
 
-        if (hasCustomer)
+        if (hasVendor)
         {
-            customerDataJson = customerData;
+            vendorDataJson = vendorData;
         }
         else
         {
-            Navigation.NavigateTo("/customer");
+            Navigation.NavigateTo("/vendor");
         }
     }
 
