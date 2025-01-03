@@ -106,11 +106,17 @@ namespace NonTrackingCustomerCard.Tests.Client.Repositories
         {
             // Arrange
             var mockJSRuntime = Substitute.For<IJSRuntime>();
-            var customerData = new CustomerDataWithSignature
+            var customerData = new CustomerOfVendorData
             {
+                OfVendor = new VendorOfCustomerData
+                {
+                    Name = "Test",
+                    PublicKey = "test-publickey"
+                },
                 Customer = new CustomerData { Points = 40 },
                 Signature = "test-signature"
             };
+
             var repository = new LocalStorageCustomersRepository(mockJSRuntime);
 
             // Act

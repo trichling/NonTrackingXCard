@@ -30,8 +30,18 @@
     }
 
     <div>
+        <label for="currentPoints">Aktueller Punktestand:</label>
+        <input id="currentPoints" @bind-value="scannedCustomerData.Customer.Points" readonly/>
+        <br />
+        <label for="amountToPay">Zahlbetrag:</label>
+        <input autofocus id="amountToPay" @bind-value="amountToPay" @oninput="CalculatePoints" /> 
+        <br />
         <label for="points">Neue Punktestand:</label>
-        <InputNumber autofocus @ref="inputPoints" @bind-Value="scannedCustomerData.Customer.Points" @onkeyup="HandleEnter" />
+        <InputNumber @ref="inputPoints" @bind-Value="newPoints" @onkeyup="HandleEnter" />
+        <br />
+        <label for="discountedAmountToPay">Rabattierter Zahlbetrag:</label>
+        <input id="discountedAmountToPay" @bind-value="discountedAmountToPay" readonly />
+        <br />
         <button @onclick="SaveCustomerData">Speichern</button>
     </div>
 
@@ -95,11 +105,16 @@ else
 
 @code {
 
+    private double amountToPay;
+    private double discountedAmountToPay;
+    private int newPoints;
     private CustomerDataWithSignature scannedCustomerData;
     private ValidityState validityState;
     private InputNumber<int> inputPoints;
     private bool showQrCode;
     private bool selectAll;
+
+
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -112,7 +127,7 @@ else
         {
             if (selectAll)
             {
-                await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", inputPoints.Element);
+                //await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", inputPoints.Element);
                 selectAll = false;
             }
 
@@ -182,8 +197,42 @@ else
         }
     }
 
+    private async Task CalculatePoints(ChangeEventArgs e)
+    {
+        if (!double.TryParse(e.Value.ToString(), out var amount))
+            return;
+
+        var discount = 0.03;
+        var additionalPoints = (int)amount;
+        var discountAmounts = 0;
+
+        if (additionalPoints > 100)
+        {
+            discountAmounts++;
+            additionalPoints = additionalPoints % 100;
+        }
+           
+        if (scannedCustomerData.Customer.Points + additionalPoints > 100)
+        {
+            newPoints = scannedCustomerData.Customer.Points;
+            var pointsTo100 = 100 - newPoints;
+            var residualPoints = newPoints + additionalPoints - 100;
+            additionalPoints -= pointsTo100;
+            newPoints = residualPoints;
+            discountAmounts++;
+        }
+        else
+        {
+            newPoints = scannedCustomerData.Customer.Points + additionalPoints;
+        }
+        
+        discountedAmountToPay = amount * (Math.Pow((1 - discount), discountAmounts));
+    }
+
     private async Task SaveCustomerData(MouseEventArgs e)
     {
+        scannedCustomerData.Customer.Points = newPoints;
+
         // Retrieve private key from local storage
         var vendorJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");
         var vendor = System.Text.Json.JsonSerializer.Deserialize<VendorData>(vendorJson);
