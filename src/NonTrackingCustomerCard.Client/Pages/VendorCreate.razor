@@ -7,16 +7,43 @@
 
 <h3>Als Händler registrieren</h3>
 
+@if (vendorLicenseState == ValidityState.InvalidSignature)
+{
+    <div class="alert alert-danger">
+        <span class="icon-error">Der angegebene Lizenzschlüssel ist ungültig.</span> 
+    </div>
+}
 
-<input @bind="inputName" placeholder="Name" />
-<textarea @bind="signedInputName" />
-
+<label for="name">Name:</label> <br />
+<input id="name" @bind="inputName" placeholder="Name" />
+<br />
+<label for="signedName">Lizenzschlüssel:</label> <br />
+<textarea id="signedName" @bind="signedInputName" />
+<br />
 <button @onclick="SaveVendor">Speichern</button>
 
 <p>
     <NavLink href="/vendor/backup/restore">Daten widerherstellen</NavLink>
 </p>
 
+<style>
+       .alert {
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .icon-error::before {
+        content: "❌";
+        margin-right: 10px;
+    }
+</style>
 
 @code {
 
@@ -24,12 +51,16 @@
 
     private string signedInputName;
 
+    private ValidityState vendorLicenseState = ValidityState.NoSignature;
+
     private async Task SaveVendor()
     {
         var isValid = await JS.InvokeAsync<bool>("cryptoHelper.verifySignature", GlobalConstants.ThinkexceptionPublicKey, inputName, signedInputName);
 
         if (!isValid)
         {
+            vendorLicenseState = ValidityState.InvalidSignature;
+            StateHasChanged();
             return;
         }
 
