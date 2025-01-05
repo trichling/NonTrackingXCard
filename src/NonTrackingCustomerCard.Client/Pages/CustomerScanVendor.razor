@@ -4,7 +4,16 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
+<NavigationLock ConfirmExternalNavigation="false" OnBeforeInternalNavigation="@OnBeforeInternalNavigation"></NavigationLock>
+
 <h3>Kundenkarte anlegen</h3>
+
+@if (vendorValidityState == ValidityState.NoSignature)
+{
+    <div class="alert alert-danger">
+        <span class="icon-danger">Der Barcode des Händlers ist nicht korrekt.</span> 
+    </div>
+}
 
 <video id="qrScanner"></video>
 
@@ -12,10 +21,29 @@
     <NavLink href="/customer/backup/restore">Daten widerherstellen</NavLink>
 </p>
 
+<style>
+     .alert {
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .icon-error::before {
+        content: "❌";
+        margin-right: 10px;
+    }
+</style>
+
 @code {
 
     private CustomerDataWithSignature customer;
     private CustomerOfVendorData customerOfVendor;
+    private ValidityState vendorValidityState = ValidityState.ValidSignature;
 
     override protected async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -23,6 +51,11 @@
         {
             await JS.InvokeVoidAsync("qrScanHelper.startScan", DotNetObjectReference.Create(this));
         }
+    }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        await JS.InvokeVoidAsync("qrScanHelper.stopScan", DotNetObjectReference.Create(this));
     }
 
     [JSInvokable]
@@ -38,10 +71,17 @@
 
         try
         {
-            var vendorOfCustomerData = System.Text.Json.JsonSerializer.Deserialize<VendorOfCustomerData>(json, new System.Text.Json.JsonSerializerOptions
+            var vendorPublicData = System.Text.Json.JsonSerializer.Deserialize<VendorPublicData>(json, new System.Text.Json.JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
+
+            if (string.IsNullOrWhiteSpace(vendorPublicData.Name) || string.IsNullOrWhiteSpace(vendorPublicData.PublicKey))
+            {
+                vendorValidityState = ValidityState.NoSignature;
+                StateHasChanged();
+                return;
+            }
 
             var customer = new CustomerOfVendorData
             {
@@ -49,7 +89,7 @@
                 {
                     Points = 0
                 },
-                OfVendor = vendorOfCustomerData
+                OfVendor = vendorPublicData
             };
 
             // Save customer data to local storage

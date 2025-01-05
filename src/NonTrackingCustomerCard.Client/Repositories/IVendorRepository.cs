@@ -8,7 +8,7 @@ public interface IVendorRepository
 
     Task<VendorData> GetVendorData();
 
-    Task<VendorOfCustomerData> GetVendorPublicData();
+    Task<VendorPublicData> GetVendorPublicData();
 
     Task SaveVendorData(VendorData vendorData);
 }

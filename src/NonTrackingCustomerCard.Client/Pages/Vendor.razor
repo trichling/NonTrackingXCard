@@ -7,6 +7,13 @@
 @inject IJSRuntime JS
 @inject IVendorRepository VendorRepository
 
+@if (vendorLicenseState == ValidityState.InvalidSignature)
+{
+    <div class="alert alert-danger">
+        <span class="icon-error">Unlizensierter Händler.</span> 
+    </div>
+}
+
 <h3>@vendorOfCustomer.Name</h3>
 
 
@@ -30,10 +37,26 @@
         height: 100%;
         object-fit: contain;
     }
+    .alert {
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .icon-error::before {
+        content: "❌";
+        margin-right: 10px;
+    }
 </style>
 
 @code {
-    private VendorOfCustomerData vendorOfCustomer = new();
+    private VendorPublicData vendorOfCustomer = new();
+    private ValidityState vendorLicenseState;
     
     protected override async Task OnInitializedAsync()
     {
@@ -41,6 +64,9 @@
         if (hasVendor)
         {
             vendorOfCustomer = await VendorRepository.GetVendorPublicData();
+            var vendor = await VendorRepository.GetVendorData();
+            var isValid = await JS.InvokeAsync<bool>("cryptoHelper.verifySignature", GlobalConstants.ThinkexceptionPublicKey, vendor.Name, vendor.SignedVendorName);
+            vendorLicenseState = isValid ? ValidityState.ValidSignature : ValidityState.InvalidSignature;
         }
         else
         {

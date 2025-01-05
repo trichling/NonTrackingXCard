@@ -6,11 +6,12 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<h3>Neuen Punktestand scannen</h3>
+<NavigationLock ConfirmExternalNavigation="false" OnBeforeInternalNavigation="@OnBeforeInternalNavigation"></NavigationLock>
+
 
 @if (scannedCustomerData != null)
 {
-    <h4>Neuer Punktestand:</h4>
+    <h3>Neuer Punktestand</h3>
 
     if (validityState == ValidityState.ValidSignature)
     {
@@ -33,6 +34,8 @@
 }
 else
 {
+    <h3>Neuen Punktestand scannen</h3>
+
     <video id="qrScanner"></video>
 }
 
@@ -81,6 +84,11 @@ else
         {
             await JS.InvokeVoidAsync("qrScanHelper.startScan", DotNetObjectReference.Create(this));
         }
+    }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        await JS.InvokeVoidAsync("qrScanHelper.stopScan", DotNetObjectReference.Create(this));
     }
 
     [JSInvokable]

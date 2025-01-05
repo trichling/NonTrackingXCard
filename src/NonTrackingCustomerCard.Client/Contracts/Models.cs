@@ -2,19 +2,22 @@ using System.Text.Json.Serialization;
 
 namespace NonTrackingCustomerCard.Client.Contracts;
 
-public class VendorOfCustomerData
+public class VendorPublicData
 {
     [JsonPropertyName("vn")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     [JsonPropertyName("puk")]
-    public string PublicKey { get; set; }
+    public string PublicKey { get; set; } = string.Empty;
 }
 
-public class VendorData : VendorOfCustomerData
+public class VendorData : VendorPublicData
 {
 
     [JsonPropertyName("prk")]
-    public string PrivateKey { get; set; }
+    public string PrivateKey { get; set; } = string.Empty;
+
+    [JsonPropertyName("svn")]
+    public string SignedVendorName { get; set; } = string.Empty;
 
 }
 
@@ -54,7 +57,7 @@ public class CustomerOfVendorData : CustomerDataWithSignature
     }
 
     [JsonPropertyName("ov")]
-    public VendorOfCustomerData OfVendor { get; set; }
+    public VendorPublicData OfVendor { get; set; }
 
 }
 

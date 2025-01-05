@@ -27,15 +27,15 @@ public class LocalStorageVendorRepository : IVendorRepository
         return System.Text.Json.JsonSerializer.Deserialize<VendorData>(vendorJson);
     }
 
-    public async Task<VendorOfCustomerData> GetVendorPublicData()
+    public async Task<VendorPublicData> GetVendorPublicData()
     {
         var (hasData, vendorJson) = await TryGetVendorJson();
         if (!hasData)
         {
-            return new VendorOfCustomerData();
+            return new VendorPublicData();
         }
 
-        return System.Text.Json.JsonSerializer.Deserialize<VendorOfCustomerData>(vendorJson);
+        return System.Text.Json.JsonSerializer.Deserialize<VendorPublicData>(vendorJson);
     }
 
     public async Task SaveVendorData(VendorData vendor)

@@ -9,6 +9,8 @@
 
 
 <input @bind="inputName" placeholder="Name" />
+<textarea @bind="signedInputName" />
+
 <button @onclick="SaveVendor">Speichern</button>
 
 <p>
@@ -20,15 +22,25 @@
 
     private string inputName;
 
+    private string signedInputName;
+
     private async Task SaveVendor()
     {
+        var isValid = await JS.InvokeAsync<bool>("cryptoHelper.verifySignature", GlobalConstants.ThinkexceptionPublicKey, inputName, signedInputName);
+
+        if (!isValid)
+        {
+            return;
+        }
+
         var keyPair = await JS.InvokeAsync<KeyPair>("cryptoHelper.generateKeyPair");
 
         var vendor = new VendorData
         {
             Name = inputName,
             PrivateKey = keyPair.PrivateKey,
-            PublicKey = keyPair.PublicKey
+            PublicKey = keyPair.PublicKey,
+            SignedVendorName = signedInputName
         };
 
         var vendorJson = System.Text.Json.JsonSerializer.Serialize(vendor);
@@ -36,5 +48,6 @@
       
         Navigation.NavigateTo("/vendor");
     }
+
 
 }
