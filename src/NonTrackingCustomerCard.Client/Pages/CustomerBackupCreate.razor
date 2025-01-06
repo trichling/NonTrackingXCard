@@ -39,6 +39,7 @@
         flex: 1;
         width: 100%;
         height: 100%;
+        min-height: 200px; /* Set a minimum height for the textarea */
         box-sizing: border-box;
         padding: 10px;
         font-size: 16px;
@@ -93,8 +94,8 @@
             bool secondConfirmation = await JS.InvokeAsync<bool>("confirm", "Sind sie WIRKLICH sicher?");
             if (secondConfirmation)
             {
-                bool thirdConfirmation = await JS.InvokeAsync<bool>("confirm", "Ein letztes mal: sind sie WIRKLICH WIRKLICH sicher?");
-                if (thirdConfirmation)
+                bool thirdConfirmation = await JS.InvokeAsync<bool>("confirm", "Lieber nicht löschen? Abbrechen klicken um endgültig zu löschen.");
+                if (!thirdConfirmation)
                 {
                     await CustomerRepository.DeleteCustomerData();
                     Navigation.NavigateTo("/");
