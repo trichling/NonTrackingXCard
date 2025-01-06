@@ -13,6 +13,7 @@ public class LocalStorageCustomersRepository : ICustomersRepository
         _jSRuntime = jSRuntime;
     }
 
+
     public async Task<CustomerDataWithSignature> GetCustomerDataWithSignatureAsync()
     {
         var (hasData, customerJson) = await TryGetCustomerJson();
@@ -45,6 +46,13 @@ public class LocalStorageCustomersRepository : ICustomersRepository
     {
         var customerJson = System.Text.Json.JsonSerializer.Serialize(customerData);
         await _jSRuntime.InvokeVoidAsync("localStorage.setItem", "NonTrackingCustomerCard.Client.Customer", customerJson);
+    }
+
+
+    public async Task DeleteCustomerData()
+    {
+        await _jSRuntime.InvokeVoidAsync("localStorage.removeItem", "NonTrackingCustomerCard.Client.Customer");
+
     }
 
     public async Task<(bool HasData, string CustomerJson)> TryGetCustomerJson()

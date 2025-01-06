@@ -17,6 +17,14 @@
     <InputTextArea  @ref="backupJson" @bind-Value="vendorDataJson" />
 </div>
 
+
+<div class="alert alert-danger">
+    <span class="icon-error">GEFAHRENZONE!! Hier haben Sie die Möglichkeit Ihre Händerldaten zu löschen. Sie sind nicht mehr in der Lage die Karten ihrer Kunden zu verarbeiten. Das kann man nicht rückgängig machen.</span> 
+</div>
+<div class="alert alert-danger">
+    <button @onclick="DeleteVendor">Kundenkarte löschen</button>
+</div>
+
 <style>
     html, body {
         height: 100%;
@@ -35,6 +43,23 @@
         box-sizing: border-box;
         padding: 10px;
         font-size: 16px;
+    }
+    .alert {
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+   
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+   
+    .icon-error::before {
+        content: "❌";
+        margin-right: 10px;
     }
 </style>
 
@@ -59,5 +84,24 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await JS.InvokeVoidAsync("window.HTMLTextAreaElement.prototype.select.call", backupJson.Element);
+    }
+
+    private async Task DeleteVendor()
+    {
+        bool firstConfirmation = await JS.InvokeAsync<bool>("confirm", "Sind sie sicher?");
+        if (firstConfirmation)
+        {
+            bool secondConfirmation = await JS.InvokeAsync<bool>("confirm", "Sind sie WIRKLICH sicher?");
+            if (secondConfirmation)
+            {
+                bool thirdConfirmation = await JS.InvokeAsync<bool>("confirm", "Ein letztes mal: sind sie WIRKLICH WIRKLICH sicher?");
+                if (thirdConfirmation)
+                {
+                    await VendorRepository.DeleteVendorData();
+                    Navigation.NavigateTo("/");
+                }
+            }
+
+        }
     }
 }

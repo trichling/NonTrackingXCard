@@ -16,6 +16,8 @@ public class LocalStorageVendorRepository : IVendorRepository
         _jSRuntime = jSRuntime;
     }
 
+
+
     public async Task<VendorData> GetVendorData()
     {
         var (hasData, vendorJson) = await TryGetVendorJson();
@@ -42,6 +44,11 @@ public class LocalStorageVendorRepository : IVendorRepository
     {
         var vendorJson = System.Text.Json.JsonSerializer.Serialize(vendor);
         await _jSRuntime.InvokeVoidAsync("localStorage.setItem", "NonTrackingCustomerCard.Client.Vendor", vendorJson);
+    }
+
+    public async Task DeleteVendorData()
+    {
+        await _jSRuntime.InvokeVoidAsync("localStorage.removeItem", "NonTrackingCustomerCard.Client.Vendor");
     }
 
     public async Task<(bool HasData, string VendorJson)> TryGetVendorJson()

@@ -11,4 +11,6 @@ public interface IVendorRepository
     Task<VendorPublicData> GetVendorPublicData();
 
     Task SaveVendorData(VendorData vendorData);
+    
+    Task DeleteVendorData();
 }

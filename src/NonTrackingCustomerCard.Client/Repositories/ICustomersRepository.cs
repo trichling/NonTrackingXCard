@@ -11,4 +11,6 @@ public interface ICustomersRepository
     Task<CustomerDataWithSignature> GetCustomerDataWithSignatureAsync();
 
     Task SaveCustomerDataWithSignatureAsync(CustomerOfVendorData customerData);
+
+    Task DeleteCustomerData();
 }
