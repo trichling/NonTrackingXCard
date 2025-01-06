@@ -270,6 +270,7 @@ else
     private async Task SaveCustomerData(MouseEventArgs e)
     {
         scannedCustomerData.Customer.Points = newPoints;
+        scannedCustomerData.Customer.Timestamp = DateTime.Now.Ticks;
 
         // Retrieve private key from local storage
         var vendorJson = await JS.InvokeAsync<string>("localStorage.getItem", "NonTrackingCustomerCard.Client.Vendor");

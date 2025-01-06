@@ -8,6 +8,9 @@ public class VendorPublicData
     public string Name { get; set; } = string.Empty;
     [JsonPropertyName("puk")]
     public string PublicKey { get; set; } = string.Empty;
+
+    [JsonPropertyName("svn")]
+    public string SignedVendorName { get; set; } = string.Empty;
 }
 
 public class VendorData : VendorPublicData
@@ -16,8 +19,7 @@ public class VendorData : VendorPublicData
     [JsonPropertyName("prk")]
     public string PrivateKey { get; set; } = string.Empty;
 
-    [JsonPropertyName("svn")]
-    public string SignedVendorName { get; set; } = string.Empty;
+
 
 }
 
@@ -31,6 +33,9 @@ public class CustomerData
 {
     [JsonPropertyName("pts")]
     public int Points { get; set; }
+
+    [JsonPropertyName("t")]
+    public long Timestamp { get; set; }
 }
 
 public class CustomerDataWithSignature
@@ -46,6 +51,7 @@ public class CustomerDataWithSignature
 
     [JsonPropertyName("s")]
     public string Signature { get; set; }
+
 }
 
 public class CustomerOfVendorData : CustomerDataWithSignature
