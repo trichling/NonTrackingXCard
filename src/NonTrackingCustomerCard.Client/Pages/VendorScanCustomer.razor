@@ -36,15 +36,28 @@
         <label for="currentPoints">Aktueller Punktestand:</label>
         <input id="currentPoints" @bind-value="scannedCustomerData.Customer.Points" readonly/>
         <br />
+
         <label for="amountToPay">Zahlbetrag:</label>
-        <input autofocus id="amountToPay" @bind-value="amountToPay" @oninput="CalculatePoints" /> 
+        <InputNumber id="amountToPay" autofocus
+            @ref="amountToPayInput" 
+            @bind-Value="amountToPay" 
+            @oninput="CalculatePoints" 
+            @onfocus="@(e => SelectAll(amountToPayInput.Element))" 
+            @onkeyup="HandleEnter" /> 
         <br />
+
         <label for="points">Neue Punktestand:</label>
-        <InputNumber @ref="inputPoints" @bind-Value="newPoints" @onkeyup="HandleEnter" />
+        <InputNumber id="points" 
+            @ref="newPointsInput" 
+            @bind-Value="newPoints" 
+            @onfocus="@(e => SelectAll(newPointsInput.Element))" 
+            @onkeyup="HandleEnter" />
         <br />
+
         <label for="discountedAmountToPay">Rabattierter Zahlbetrag:</label>
         <input id="discountedAmountToPay" @bind-value="discountedAmountToPay" readonly />
         <br />
+
         <button @onclick="SaveCustomerData">Speichern</button>
     </div>
 
@@ -68,14 +81,20 @@ else
 }
 
 <style>
-    html, body, article  {
+    html, body, .qr-code-container {
         height: 100%;
         margin: 0;
     }
     .qr-code-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 85vmin; 
+        max-height: 85vmin; 
+    }
+    canvas {
         width: 100%;
         height: 100%;
-        object-fit: contain;
     }
 
     .alert {
@@ -140,12 +159,14 @@ else
 
 @code {
 
-    private double amountToPay;
-    private double discountedAmountToPay;
+    private decimal amountToPay;
+    private InputNumber<decimal> amountToPayInput;
     private int newPoints;
+    private InputNumber<int> newPointsInput;
+    private double discountedAmountToPay;
     private CustomerDataWithSignature scannedCustomerData;
     private ValidityState validityState;
-    private InputNumber<int> inputPoints;
+
     private bool showQrCode;
     private bool selectAll;
 
@@ -160,7 +181,6 @@ else
         {
             if (selectAll)
             {
-                //await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", inputPoints.Element);
                 selectAll = false;
             }
 
@@ -228,6 +248,11 @@ else
         {
             await SaveCustomerData(null);
         }
+    }
+
+    private async Task SelectAll(ElementReference? e)
+    {
+        await JS.InvokeVoidAsync("window.HTMLInputElement.prototype.select.call", e);
     }
 
     private async Task OnBeforeInternalNavigation(LocationChangingContext context)
